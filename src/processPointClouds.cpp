@@ -110,6 +110,37 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
 
     // TODO:: Fill in the function to perform euclidean clustering to group detected obstacles
+    // kort1k
+    // create KdTree object
+    typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
+    kdtree->setInputCloud(cloud);
+    std::vector<pcl::PointIndices> clustered_indices;
+    pcl::EuclideanClusterExtraction<PointT> ec;
+    ec.setClusterTolerance(clusterTolerance);
+    ec.setMinClusterSize(minSize);
+    ec.setMaxClusterSize(maxSize);
+    ec.setSearchMethod(kdtree);
+    ec.setInputCloud(cloud);
+    ec.extract(clustered_indices);
+  
+    // iterate index clusters
+    for (std::vector<pcl::PointIndices>::const_iterator it = clustered_indices.begin();
+         it != clustered_indices.end();
+         ++it) {
+      
+        // iterate points for each index cluster
+    	typename pcl::PointCloud<PointT>::Ptr cluster_cloud (new pcl::PointCloud<PointT>);
+      	for (std::vector<int>::const_iterator pit = it->indices.begin();
+             pit != it->indices.end();
+             ++pit) {
+          cluster_cloud->push_back( cloud->points[ *pit ] );
+        }
+      	cluster_cloud->width = cluster_cloud->points.size();
+      	cluster_cloud->height = 1;
+      	cluster_cloud->is_dense = true;
+      
+        clusters.push_back( cluster_cloud );                   
+    }
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
