@@ -36,17 +36,20 @@ std::vector<Car> initHighway(bool renderScene, pcl::visualization::PCLVisualizer
 }
 
 
-void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer)
+void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer,
+    ProcessPointClouds<pcl::PointXYZI>* processorPointI,
+    const pcl::PointCloud<pcl::PointXYZI>::Ptr &inputCloud
+    )
 {
-    ProcessPointClouds<pcl::PointXYZI>* processorPointI =  new ProcessPointClouds<pcl::PointXYZI>();
-    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = processorPointI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
+    //ProcessPointClouds<pcl::PointXYZI>* processorPointI =  new ProcessPointClouds<pcl::PointXYZI>();
+    //pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloud = processorPointI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
     pcl::PointCloud<pcl::PointXYZI>::Ptr filteredCloud = processorPointI->FilterCloud(
         inputCloud, 0.20,
         Eigen::Vector4f( -80, -5.2, -2, 1),  // 4.5 as we drive on right side. At right handed driver pay attention 
-        Eigen::Vector4f( 220,  7.2,  3, 1)
+        Eigen::Vector4f( 220,  7.2,  1.4, 1)
         ); 
 
-    renderPointCloud(viewer, inputCloud, "cityCloud");
+    // renderPointCloud(viewer, inputCloud, "cityCloud");
 
     // render road 
     std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segmentCloud = processorPointI->SegmentPlane(filteredCloud, 100, 0.2);
@@ -144,10 +147,26 @@ int main (int argc, char** argv)
     CameraAngle setAngle = XY;
     initCamera(setAngle, viewer);
     //simpleHighway(viewer);
-    cityBlock(viewer);
+    
+    // project
+    ProcessPointClouds<pcl::PointXYZI>* processorPointI =  new ProcessPointClouds<pcl::PointXYZI>();
+    std::vector<boost::filesystem::path> stream = processorPointI->streamPcd("../src/sensors/data/pcd/data_1");
+    auto si = stream.begin();
+    pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloudI = processorPointI->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
 
-    while (!viewer->wasStopped ())
-    {
-        viewer->spinOnce ();
-    } 
+    while (!viewer->wasStopped() ) {
+        viewer->removeAllPointClouds();
+        viewer->removeAllShapes();
+
+        inputCloudI = processorPointI->loadPcd((*si).string());
+
+        cityBlock(viewer, processorPointI, inputCloudI);
+
+        si++;
+        if (si == stream.end())
+            si = stream.begin();
+
+        viewer->spinOnce();
+    }
+ 
 }
