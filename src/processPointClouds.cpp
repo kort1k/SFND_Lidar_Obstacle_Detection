@@ -79,7 +79,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
   for( int idx : inliers->indices)
     roadCloud->points.push_back(cloud->points[idx]);
   
-  pcl::ExtractIndices<pcl::PointXYZ> extract;
+  pcl::ExtractIndices<PointT> extract;
   extract.setInputCloud(cloud);
   extract.setIndices(inliers);
   extract.setNegative(true);
@@ -105,7 +105,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
     pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
     // create segmentation object
-    pcl::SACSegmentation<pcl::PointXYZ> seg;
+    pcl::SACSegmentation<PointT> seg;
     // options
     seg.setOptimizeCoefficients (true);
     seg.setModelType (pcl::SACMODEL_PLANE);
