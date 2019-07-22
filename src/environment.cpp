@@ -150,7 +150,7 @@ int main (int argc, char** argv)
     
     // project
     ProcessPointClouds<pcl::PointXYZI>* processorPointI =  new ProcessPointClouds<pcl::PointXYZI>();
-    std::vector<boost::filesystem::path> stream = processorPointI->streamPcd("../src/sensors/data/pcd/data_2");
+    std::vector<boost::filesystem::path> stream = processorPointI->streamPcd("../src/sensors/data/pcd/data_1");
     auto si = stream.begin();
     pcl::PointCloud<pcl::PointXYZI>::Ptr inputCloudI;
 
@@ -166,7 +166,7 @@ int main (int argc, char** argv)
         if (si == stream.end())
             si = stream.begin();
 
-        viewer->spinOnce();
+        viewer->spinOnce(100);
     }
  
 }
