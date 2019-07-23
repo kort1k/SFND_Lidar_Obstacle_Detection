@@ -75,13 +75,36 @@ void render2DTree(Node* node, pcl::visualization::PCLVisualizer::Ptr& viewer, Bo
 
 }
 
+void clusterProximity(const std::vector<std::vector<float>>& points, uint idx, std::vector<bool> &visited, std::vector<int> &cluster, KdTree* tree, float distanceTol)
+{
+	visited[idx] = true;
+	cluster.push_back(idx);
+	std::vector<int>  nearby = tree->search(points[idx], distanceTol);
+	for (int near_idx : nearby) {
+		if (!visited[near_idx])
+			clusterProximity(points, near_idx, visited, cluster, tree, distanceTol);
+	}
+}
+
 std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<float>>& points, KdTree* tree, float distanceTol)
 {
-
 	// TODO: Fill out this function to return list of indices for each cluster
 
 	std::vector<std::vector<int>> clusters;
  
+	// @kort1k
+ 	std::vector<bool> visited(points.size(), false);
+	
+	for (size_t idx = 0; idx < points.size(); ++idx) {
+		if (!visited[idx]) {
+			std::vector<int> cluster;
+			clusterProximity(points, idx, visited, cluster, tree, distanceTol);
+			clusters.push_back(cluster);
+		}
+
+	}
+
+
 	return clusters;
 
 }
@@ -114,7 +137,8 @@ int main ()
   
   	std::cout << "Test Search" << std::endl;
   	std::vector<int> nearby = tree->search({-6,7},3.0);
-  	for(int index : nearby)
+  	std::cout << "Size is: " << nearby.size() << std::endl;
+	for(int index : nearby)
       std::cout << index << ",";
   	std::cout << std::endl;
 
